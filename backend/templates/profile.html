@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - GeoTracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body class="dashboard-body">
+    <div id="particles-js"></div>
+    <div class="overlay"></div>
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="dashboard-container">
+        <header class="dash-header">
+            <div class="logo-section">
+                <span class="section-kicker">GeoTracker</span>
+                <h1 class="glow-text">Centro de geocercas</h1>
+            </div>
+
+            <div class="search-section">
+                <div class="search-box">
+                    <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <circle cx="11" cy="11" r="6"></circle>
+                        <path d="M20 20l-3.5-3.5"></path>
+                    </svg>
+                    <input type="text" placeholder="Buscar por nombre..." id="dash-search">
+                </div>
+            </div>
+
+            <div class="user-section">
+                <button class="profile-circle" id="profile-toggle" type="button" aria-label="Abrir menú de usuario">
+                    <img src="{{ url_for('static', filename='img/nofotodeperfil.png') }}" alt="Perfil">
+                </button>
+
+                <div id="profileDropdown" class="profile-dropdown">
+                    <div class="dropdown-header">
+                        <p class="user-email">{{ email_html if email_html else 'Sin correo' }}</p>
+
+                        <div class="large-profile-pic">
+                            <img src="{{ url_for('static', filename='img/nofotodeperfil.png') }}" alt="Perfil ampliado">
+                        </div>
+
+                        <h3 class="user-greeting">{{ nombre_html if nombre_html else 'Usuario' }}</h3>
+                        <p class="user-meta">Panel principal de geocercas y mapas.</p>
+
+                        <button class="btn-config-dark" id="profile-settings-btn" type="button">
+                            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 1-2 0 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 1 0-2 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6c.38 0 .74-.14 1-.4a1.7 1.7 0 0 1 2 0c.26.26.62.4 1 .4s.74-.14 1-.4a1.7 1.7 0 0 1 2 0c.26.26.62.4 1 .4a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c0 .38.14.74.4 1a1.7 1.7 0 0 1 0 2c-.26.26-.4.62-.4 1s.14.74.4 1z"></path>
+                            </svg>
+                            <span>Configuración</span>
+                        </button>
+                    </div>
+
+                    <div class="dropdown-footer">
+                        <button class="btn-logout-dark" id="profile-logout-btn" type="button">Cerrar sesión</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dash-content">
+            <aside class="dash-sidebar">
+                <button class="btn-create-neon" id="create-geofence-btn" type="button">
+                    <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 20l4.5-1 9.5-9.5-3.5-3.5L5 15.5 4 20z"></path>
+                        <path d="M13.5 6.5l3.5 3.5"></path>
+                    </svg>
+                    <span>Crear geocerca</span>
+                </button>
+
+                <nav class="side-nav">
+                    <button type="button" id="btn-tab-geocercas" class="nav-link active">
+                        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10z"></path>
+                            <circle cx="12" cy="11" r="2.5"></circle>
+                        </svg>
+                        <span>Geocercas</span>
+                    </button>
+
+                    <button type="button" id="btn-tab-mapas" class="nav-link">
+                        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6.5l6-2 6 2 6-2v13l-6 2-6-2-6 2z"></path>
+                            <path d="M9 4.5v13"></path>
+                            <path d="M15 6.5v13"></path>
+                        </svg>
+                        <span>Mapas</span>
+                    </button>
+
+                    <button type="button" id="sidebar-logout-btn" class="nav-link nav-link-danger">
+                        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 7l5 5-5 5"></path>
+                            <path d="M19 12H9"></path>
+                            <path d="M10 5H5v14h5"></path>
+                        </svg>
+                        <span>Cerrar sesión</span>
+                    </button>
+                </nav>
+            </aside>
+
+            <main class="dash-view profile-view">
+                <section id="seccion-geocercas">
+                    <div class="section-head">
+                        <div>
+                            <span class="section-kicker">Inventario</span>
+                            <h2 class="section-title">Tus geocercas</h2>
+                        </div>
+                        <p class="section-copy">Consulta, busca y abre una zona guardada para seguir editándola en el mapa.</p>
+                    </div>
+
+                    <div class="data-panel geofence-panel">
+                        <div class="table-header">
+                            <div class="col-name">Nombre</div>
+                            <div class="col-points">Puntos</div>
+                            <div class="col-date">Fecha</div>
+                            <div class="col-actions">Acciones</div>
+                        </div>
+
+                        <div class="table-body" data-table="geocercas">
+                            {% for zona in geocercas %}
+                            <div class="table-row" data-search="{{ zona.nombre_zona|lower }}" data-coords='{{ zona.coordenadas_json }}' data-row-action="open-zone">
+                                <div class="col-name">{{ zona.nombre_zona }}</div>
+                                <div class="col-points">{{ zona.cantidad_puntos }} puntos</div>
+                                <div class="col-date">{{ zona.fecha_creacion.strftime('%d/%m/%Y') if zona.fecha_creacion else 'N/D' }}</div>
+                                <div class="col-actions">
+                                    <button class="btn-action-delete" type="button" data-delete-type="zone" data-delete-id="{{ zona.id_geocerca }}" title="Eliminar geocerca">
+                                        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M4 7h16"></path>
+                                            <path d="M9 7V4h6v3"></path>
+                                            <path d="M7 7l1 12h8l1-12"></path>
+                                        </svg>
+                                        <span>Eliminar</span>
+                                    </button>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="empty-state">
+                                <h3>No hay geocercas todavía</h3>
+                                <p>Crea tu primera zona y comenzará a aparecer aquí con su fecha y número de puntos.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <section id="seccion-mapas" style="display: none;">
+                    <div class="section-head">
+                        <div>
+                            <span class="section-kicker">Mapas</span>
+                            <h2 class="section-title">Tus mapas guardados</h2>
+                        </div>
+                        <p class="section-copy">Abre un mapa existente para continuar agregando zonas o revisar las ya creadas.</p>
+                    </div>
+
+                    <div class="data-panel geofence-panel">
+                        <div class="table-header">
+                            <div class="col-name">Nombre</div>
+                            <div class="col-points">Geocercas</div>
+                            <div class="col-date">Fecha</div>
+                            <div class="col-actions">Acciones</div>
+                        </div>
+
+                        <div class="table-body" data-table="mapas">
+                            {% for mapa in mapas %}
+                            <div class="table-row" data-search="{{ mapa.nombre_mapa|lower }}" data-map-id="{{ mapa.id_mapa }}" data-row-action="open-map">
+                                <div class="col-name">{{ mapa.nombre_mapa }}</div>
+                                <div class="col-points">{{ mapa.cantidad_geocercas }} geocercas</div>
+                                <div class="col-date">{{ mapa.fecha_creacion.strftime('%d/%m/%Y') if mapa.fecha_creacion else 'N/D' }}</div>
+                                <div class="col-actions">
+                                    <button class="btn-action-delete" type="button" data-delete-type="map" data-delete-id="{{ mapa.id_mapa }}" title="Eliminar mapa">
+                                        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M4 7h16"></path>
+                                            <path d="M9 7V4h6v3"></path>
+                                            <path d="M7 7l1 12h8l1-12"></path>
+                                        </svg>
+                                        <span>Eliminar</span>
+                                    </button>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="empty-state">
+                                <h3>No hay mapas guardados</h3>
+                                <p>Guarda un mapa desde el editor para administrarlo después desde esta vista.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="custom-modal">
+        <div class="modal-content">
+            <h3 id="delete-modal-title">Eliminar elemento</h3>
+            <p id="delete-modal-copy">Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="delete-cancel-btn" type="button">Cancelar</button>
+                <button class="btn-confirm-delete" id="delete-confirm-btn" type="button">Sí, eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="{{ url_for('static', filename='js/particles-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

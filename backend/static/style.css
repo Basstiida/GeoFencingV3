@@ -1,0 +1,346 @@
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: #000; 
+    
+    
+    background-image: 
+        radial-gradient(
+            circle, 
+            rgba(0,0,0,0) 0%,   /* centro transparente */
+            rgba(0,0,0,0) 40%,  /* brillo 40% */
+            rgba(0,0,0,0.6) 50%, /* Empieza a oscurecer suavemente */
+            rgba(0,0,0,1) 95%    /* Negro total solo en la orilla extrema */
+        ),
+        url('img/Fondo_Geo7.png'); 
+
+    background-size: 80% auto; 
+    background-position: center 40%; 
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
+    /* Tipografía y Alineación del contenido (Login) */
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    overflow: hidden; /* Evita scrolls innecesarios */
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Empieza arriba */
+    padding-top: 5vh; /* Subir bloque */
+
+}
+
+/* --- CONTENEDOR PRINCIPAL --- */
+.main-content {
+    position: relative;
+    z-index: 3; 
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* --- TÍTULO Y CURSOR --- */
+.header {
+    margin-bottom: 25px;
+}
+
+#typewriter-text {
+    font-size: 5rem; 
+    display: inline;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.7); /* Brillo */
+    font-weight: bold; 
+    color: white;
+}
+
+/* --- TARJETA DE LOGIN  --- */
+.login-card {
+    width: 100%;
+    max-width: 380px; /* compacto */
+    padding: 20px 30px; 
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.login-card h2 {
+    margin: 0 0 20px 0; /* Elimina margen superior para que suba */
+    font-size: 1.8rem;
+    font-weight: 500;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.btn-main {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-main:hover {
+    background: #ccc;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
+
+.footer-links a {
+    color: #00d4ff;
+    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-color: #00d4ff; 
+    text-decoration-thickness: 2px;
+}
+
+#particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Lo subimos un poco */
+    background-color: #000000; 
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /*background: rgba(0, 0, 0, 0.5);  Capa oscura */
+    z-index: 2;
+    pointer-events: none; /* Detectar el mouse */
+}
+
+/*----------------- PROFILE CSS ---------------------------------------------------------*/
+
+/* Contenedor principal para posicionar el menú */
+.profile-menu-container {
+    position: absolute; /* Para que esté flotando */
+    top: 20px;
+    right: 20px;
+    z-index: 1000; /* Asegura que esté siempre encima de todo */
+}
+
+/* Estilo del icono circular de perfil */
+.profile-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* Lo hace circular */
+    background-color: #ffffff; /* Color de fondo si no hay imagen */
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.5); /* Efecto de brillo */
+    transition: transform 0.2s ease;
+}
+
+.profile-icon:hover {
+    transform: scale(1.05); /* Pequeño efecto al pasar el mouse */
+}
+
+.round-profile-pic {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    object-fit: cover; /* Asegura que la imagen se ajuste bien */
+}
+
+/* Estilo del menú desplegable */
+.profile-dropdown-content {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    background-color: #2a2a3a; /* Fondo oscuro similar a tus tarjetas */
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+    z-index: 1001;
+    right: 0; /* Alinea a la derecha del icono */
+    border-radius: 8px;
+    overflow: hidden; /* Para que los bordes redondeados se vean bien */
+    margin-top: 10px; /* Separación del icono */
+    border: 1px solid #00f2ff50; /* Borde sutil */
+}
+
+.profile-dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    transition: background-color 0.2s ease;
+}
+
+.profile-dropdown-content a:hover {
+    background-color: #00f2ff30; /* Fondo más claro al pasar el mouse */
+    color: #00f2ff; /* Color del texto al pasar el mouse */
+}
+
+/* Clase para mostrar el menú (se añade con JavaScript) */
+.show {
+    display: block;
+}
+
+/*BARRA BÚSQUEDA*/
+/* Contenedor centrado en la parte superior */
+.top-nav-center {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* Centrado exacto */
+    z-index: 1000;
+    width: 40%; /* Ancho de la barra */
+    min-width: 300px;
+}
+
+/* Estilo de la barra de búsqueda */
+.search-bar-container {
+    display: flex;
+    align-items: center;
+    background: rgba(42, 42, 58, 0.8); /* Fondo oscuro semi-transparente */
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    border-radius: 25px;
+    padding: 8px 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.search-bar-container:focus-within {
+    border-color: #00f2ff;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+    background: rgba(42, 42, 58, 0.95);
+}
+
+.search-icon {
+    margin-right: 12px;
+    font-size: 18px;
+    color: #00f2ff;
+}
+
+#global-search {
+    background: none;
+    border: none;
+    color: white;
+    width: 100%;
+    font-size: 16px;
+    outline: none;
+}
+
+#global-search::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dashboard-layout {
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 70px);
+    margin-top: 70px;
+    position: relative;
+    z-index: 10;
+}
+
+/* 2. Sidebar: El panel izquierdo */
+.sidebar {
+    width: 260px;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-new {
+    background: white;
+    color: #3c4043;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    cursor: pointer;
+    margin: 0 20px 10px 20px;
+    width: fit-content;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 25px;
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    border-radius: 0 20px 20px 0;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+    background: rgba(0, 242, 255, 0.2);
+    color: #00f2ff;
+    font-weight: bold;
+}
+
+/* El área principal ahora es oscura y translúcida */
+.content-area {
+    flex: 1;
+    background: rgba(15, 15, 25, 0.7); /* Oscuro con transparencia */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    margin: 20px;
+    padding: 25px;
+    backdrop-filter: blur(10px); /* Efecto de vidrio esmerilado */
+    color: white;
+}
+
+/* La cabecera de la tabla */
+.table-header {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    color: #00f2ff; /* Color cian neón para los títulos */
+}
+
+.folder-title {
+    font-size: 18px;
+    font-weight: 400;
+}
+
+/* 4. Estilo de la Tabla interna */
+.table-header {
+    display: flex;
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+    color: #5f6368;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.col-name { flex: 3; }
+.col-owner { flex: 1.5; }
+.col-date { flex: 1.5; }
+.col-actions { width: 50px; }

@@ -1,0 +1,124 @@
+/* --- ESTILOS GLOBALES --- */
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: #000000; /* Negro sólido para máximo contraste */
+    
+    /* Tipografía estándar para todo el proyecto */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    overflow: hidden; /* Evita que aparezcan barras de scroll por las partículas */
+}
+
+/* --- CAPA DE PARTÍCULAS --- */
+#particles-js {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Al fondo de todo */
+    background-color: #000000; 
+}
+
+/* --- CAPA DE INTERACCIÓN (OVERLAY) --- */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2; /* Justo encima de las partículas, debajo del contenido */
+    pointer-events: none; /* Permite que el mouse "atraviese" esta capa y toque las partículas */
+    background: transparent; 
+}
+
+.toast-region {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(360px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(10, 14, 18, 0.92);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(18px);
+    color: #f3f7fb;
+    pointer-events: auto;
+    animation: toast-enter 180ms ease-out;
+}
+
+.toast::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex: 0 0 10px;
+    margin-top: 5px;
+    background: #6ca7ff;
+    box-shadow: 0 0 0 6px rgba(108, 167, 255, 0.12);
+}
+
+.toast[data-tone="success"]::before {
+    background: #48c78e;
+    box-shadow: 0 0 0 6px rgba(72, 199, 142, 0.12);
+}
+
+.toast[data-tone="warning"]::before {
+    background: #f2b84b;
+    box-shadow: 0 0 0 6px rgba(242, 184, 75, 0.12);
+}
+
+.toast[data-tone="error"]::before {
+    background: #f26b6b;
+    box-shadow: 0 0 0 6px rgba(242, 107, 107, 0.12);
+}
+
+.toast-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.toast-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(231, 238, 246, 0.7);
+}
+
+.toast-message {
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+.ui-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    flex: 0 0 18px;
+}
+
+@keyframes toast-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

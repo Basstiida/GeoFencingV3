@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil y configuración - GeoTracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+</head>
+<body class="settings-body">
+    <div id="particles-js"></div>
+    <div class="overlay"></div>
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="settings-shell">
+        <header class="settings-topbar">
+            <a class="back-link" href="{{ url_for('profile') }}">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 18l-6-6 6-6"></path>
+                </svg>
+                <span>Volver al panel</span>
+            </a>
+
+            <div class="topbar-copy">
+                <span class="page-kicker">Perfil</span>
+                <h1 class="page-title">Tu cuenta en GeoTracker</h1>
+            </div>
+
+            <a class="logout-link" href="{{ url_for('logout') }}">Cerrar sesión</a>
+        </header>
+
+        <main class="settings-grid">
+            <aside class="identity-card">
+                <div class="identity-card-top">
+                    <span class="identity-kicker">Resumen</span>
+                    <div class="identity-avatar-wrap">
+                        <div class="identity-avatar-ring"></div>
+                        <img class="identity-avatar" src="{{ url_for('static', filename='img/nofotodeperfil.png') }}" alt="Foto de perfil">
+                        <span class="identity-initials" id="identity-initials">{{ initials_html }}</span>
+                    </div>
+                    <h2 class="identity-name" id="identity-name">{{ nombre_html }}</h2>
+                    <p class="identity-email">{{ user.email }}</p>
+                </div>
+
+                <div class="identity-stats">
+                    <article class="stat-card">
+                        <span class="stat-value">{{ geofence_count }}</span>
+                        <span class="stat-label">Geocercas</span>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-value">{{ map_count }}</span>
+                        <span class="stat-label">Mapas</span>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-value">{{ device_count }}</span>
+                        <span class="stat-label">Dispositivos</span>
+                    </article>
+                </div>
+
+                <section class="photo-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <span class="panel-kicker">Foto</span>
+                            <h3>Imagen de perfil</h3>
+                        </div>
+                        <span class="status-pill">Próximamente</span>
+                    </div>
+                    <p class="panel-copy">
+                        Esta vista ya queda preparada para que después conectemos carga de imagen real.
+                        Hoy solo mostramos la estructura visual y tu avatar por defecto.
+                    </p>
+                    <button class="ghost-button" id="photo-coming-soon-btn" type="button">Cambiar foto</button>
+                </section>
+            </aside>
+
+            <section class="settings-panel">
+                <div class="settings-intro">
+                    <span class="page-kicker">Configuración</span>
+                    <h2>Información personal</h2>
+                    <p>
+                        Revisa los datos de tu cuenta y actualiza lo necesario. El correo queda visible,
+                        pero por ahora no lo editamos para no mezclar cambios de identidad con el acceso.
+                    </p>
+                </div>
+
+                <form id="profile-form" class="profile-form">
+                    <div class="form-grid">
+                        <label class="field-group">
+                            <span>Nombre</span>
+                            <input id="profile-nombre" name="nombre" type="text" value="{{ user.nombre or '' }}" maxlength="100" autocomplete="given-name" required>
+                        </label>
+
+                        <label class="field-group">
+                            <span>Apellido paterno</span>
+                            <input id="profile-apellido-paterno" name="apellido_paterno" type="text" value="{{ user.apellido_paterno or '' }}" maxlength="100" autocomplete="family-name" required>
+                        </label>
+
+                        <label class="field-group">
+                            <span>Apellido materno</span>
+                            <input id="profile-apellido-materno" name="apellido_materno" type="text" value="{{ user.apellido_materno or '' }}" maxlength="100" autocomplete="additional-name">
+                        </label>
+
+                        <label class="field-group">
+                            <span>Teléfono</span>
+                            <input id="profile-telefono" name="telefono" type="tel" value="{{ user.telefono or '' }}" maxlength="20" autocomplete="tel" required>
+                        </label>
+
+                        <label class="field-group field-group-wide">
+                            <span>Correo electrónico</span>
+                            <input id="profile-email" name="email" type="email" value="{{ user.email or '' }}" autocomplete="email" readonly>
+                        </label>
+                    </div>
+
+                    <div class="account-strip">
+                        <div>
+                            <span class="panel-kicker">Cuenta</span>
+                            <h3>Acceso y datos visibles</h3>
+                        </div>
+                        <p>
+                            Tu correo seguirá siendo <strong>{{ user.email }}</strong>. Si luego quieres
+                            permitir cambio de correo o contraseña, se agrega como flujo separado.
+                        </p>
+                    </div>
+
+                    <div class="form-actions">
+                        <a class="secondary-link" href="{{ url_for('profile') }}">Cancelar</a>
+                        <button class="primary-button" id="profile-save-btn" type="submit">
+                            <span class="button-label">Guardar cambios</span>
+                            <span class="button-loader" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="{{ url_for('static', filename='js/particles-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html>

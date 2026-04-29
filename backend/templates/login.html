@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso - GeoTracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    </head>
+    <body class="auth-body auth-body-login">
+        <div id="particles-js"></div>
+        <div class="overlay"></div>
+
+        <main class="main-content login-shell">
+            <section class="auth-hero">
+                <div class="hero-copy">
+                    <p class="hero-kicker">GeoTracker Platform</p>
+                    <h1 class="hero-title">
+                        Control geoespacial con una interfaz sobria y clara.
+                    </h1>
+                    <p class="hero-description">
+                        Supervisa zonas, rutas y eventos desde un entorno enfocado en lectura rápida, decisiones operativas y seguimiento continuo.
+                    </p>
+                </div>
+
+                <div class="hero-metadata">
+                    <div class="hero-meta-line">
+                        <span>Geocercas</span>
+                        <span>Alertas</span>
+                        <span>Seguimiento</span>
+                    </div>
+                    <div class="hero-signature">
+                        <span class="signal-label">Plataforma</span>
+                        <strong id="typewriter-text"></strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="auth-panel">
+                <div class="login-card login-card-modern">
+                    <div class="auth-panel-header">
+                        <p class="panel-kicker">Acceso seguro</p>
+                        <h2>Iniciar sesión</h2>
+                        <p class="panel-copy">
+                            Entra a tu centro de control para administrar mapas, rutas y geocercas.
+                        </p>
+                    </div>
+
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <label for="email">Correo electrónico</label>
+                            <input type="email" id="email" placeholder="equipo@geotracker.mx" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="password">Contraseña</label>
+                            <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+                        </div>
+                        <button type="submit" class="btn-main">Entrar al panel</button>
+                    </form>
+
+                    <div class="footer-links">
+                        <p>¿No tienes cuenta? <a href="/register-view">Regístrate aquí</a></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="auth-modal" class="auth-modal" hidden>
+            <div class="auth-modal-backdrop" data-close-modal="true"></div>
+            <div id="auth-modal-dialog" class="auth-modal-dialog" data-tone="loading" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+                <div class="auth-modal-icon" aria-hidden="true">
+                    <span class="auth-modal-spinner"></span>
+                    <span class="auth-modal-symbol">!</span>
+                </div>
+                <h3 id="auth-modal-title">No se pudo iniciar sesión</h3>
+                <p id="auth-modal-message"></p>
+                <button id="auth-modal-close" type="button" class="auth-modal-button">Cerrar</button>
+            </div>
+        </div>
+    </body>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="{{ url_for('static', filename='js/particles-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    
+</html>

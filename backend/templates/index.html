@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoTracker Pro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body class="map-body">
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="search-box-container">
+        <button id="menu-toggle" class="control-icon-button" type="button" aria-label="Abrir panel">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M4 7h16"></path>
+                <path d="M4 12h16"></path>
+                <path d="M4 17h16"></path>
+            </svg>
+        </button>
+
+        <input type="text" id="map-search" placeholder="Buscar lugar o dirección">
+
+        <button id="search-action-btn" class="control-action-button" type="button">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="6"></circle>
+                <path d="M20 20l-3.5-3.5"></path>
+            </svg>
+            <span>Buscar</span>
+        </button>
+    </div>
+
+    <div class="map-save-container">
+        <label class="field-label" for="map-name-input">Mapa activo</label>
+        <div class="map-save-field">
+            <input type="text" id="map-name-input" value="Mapa 1" placeholder="Nombre del mapa">
+            <button id="btn-save-map" class="control-action-button accent" type="button">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 4h11l3 3v13H5z"></path>
+                    <path d="M8 4v6h8V4"></path>
+                    <path d="M9 17h6"></path>
+                </svg>
+                <span>Guardar</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="draw-tools-container">
+        <button id="btn-main-draw" class="main-draw-btn" type="button">
+            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 20l4.5-1 9.5-9.5-3.5-3.5L5 15.5 4 20z"></path>
+                <path d="M13.5 6.5l3.5 3.5"></path>
+            </svg>
+            <span>Dibujar</span>
+        </button>
+
+        <div class="dropdown-wrapper">
+            <button id="btn-draw-dropdown" class="dropdown-arrow-btn" type="button" aria-label="Más herramientas de dibujo">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 10l5 5 5-5"></path>
+                </svg>
+            </button>
+
+            <div id="draw-dropdown-menu" class="dropdown-menu">
+                <button class="dropdown-item" id="btn-draw-coords" type="button">
+                    <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10z"></path>
+                        <circle cx="12" cy="11" r="2.5"></circle>
+                    </svg>
+                    <span>Área por coordenadas</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="geofence-creator-panel" id="geo-panel">
+        <div class="geofence-header" id="geo-panel-header">
+            <div>
+                <span class="panel-eyebrow">Editor</span>
+                <strong>Nueva geocerca</strong>
+            </div>
+            <span id="geo-panel-arrow" class="arrow-icon" aria-hidden="true">︾</span>
+        </div>
+
+        <div class="geofence-content" id="geo-panel-content">
+            <div class="field-group">
+                <label class="field-label" for="geo-panel-name">Nombre de la zona</label>
+                <input type="text" id="geo-panel-name" placeholder="Ej. Bellas Artes">
+            </div>
+
+            <div class="point-summary" id="geo-point-summary">Aún no hay puntos trazados.</div>
+
+            <div class="coord-list-container">
+                <ul id="geo-coord-list"></ul>
+            </div>
+
+            <div class="geo-panel-actions">
+                <button id="btn-geo-cancel" class="geo-btn-cancel" type="button">Cancelar</button>
+                <button id="btn-geo-confirm" class="geo-btn-confirm" type="button">Validar forma</button>
+            </div>
+
+            <button id="btn-geo-save" class="geo-btn-save" type="button" disabled>Guardar geocerca</button>
+        </div>
+    </div>
+
+    <aside id="sidebar">
+        <div class="sidebar-brand">
+            <span class="panel-eyebrow">GeoTracker Pro</span>
+            <h2>Panel operativo</h2>
+            <p>Gestiona geocercas, simulaciones y mapas desde una sola vista.</p>
+        </div>
+
+        <div class="sidebar-status-card">
+            <span class="panel-eyebrow">Estado del sistema</span>
+            <strong id="app-status">En espera de interacción.</strong>
+            <p>La señal y los eventos se actualizan en tiempo real.</p>
+        </div>
+
+        <div class="sidebar-actions">
+            <button class="nav-link" id="nav-draw-zone" type="button">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 20l4.5-1 9.5-9.5-3.5-3.5L5 15.5 4 20z"></path>
+                    <path d="M13.5 6.5l3.5 3.5"></path>
+                </svg>
+                <span>Dibujar zona</span>
+            </button>
+
+            <button class="nav-link" id="nav-open-coords" type="button">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10z"></path>
+                    <circle cx="12" cy="11" r="2.5"></circle>
+                </svg>
+                <span>Área por coordenadas</span>
+            </button>
+
+            <button class="nav-link" id="nav-simulate-route" type="button">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 18c2.5 0 2.5-12 5-12s2.5 12 5 12 2.5-12 5-12"></path>
+                </svg>
+                <span>Simular ruta</span>
+            </button>
+
+            <button class="nav-link" id="nav-stop-sim" type="button">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="7" y="7" width="10" height="10" rx="1.5"></rect>
+                </svg>
+                <span>Detener simulación</span>
+            </button>
+
+            <button class="nav-link" id="nav-profile" type="button">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="3.2"></circle>
+                    <path d="M5 19c1.9-3.2 4.2-4.8 7-4.8s5.1 1.6 7 4.8"></path>
+                </svg>
+                <span>Volver al perfil</span>
+            </button>
+
+            <button class="nav-link nav-link-danger" id="nav-logout" type="button">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 7l5 5-5 5"></path>
+                    <path d="M19 12H9"></path>
+                    <path d="M10 5H5v14h5"></path>
+                </svg>
+                <span>Cerrar sesión</span>
+            </button>
+        </div>
+    </aside>
+
+    <div id="map"></div>
+
+    <div id="alert-box" data-status="safe">
+        <span class="status-eyebrow">Cobertura</span>
+        <strong id="alert-title">Sistema seguro</strong>
+        <span id="alert-message">Monitoreo activo.</span>
+    </div>
+
+    <div id="coordModal" class="modal-overlay">
+        <div class="modal-content glass">
+            <h3>Crear área por coordenadas</h3>
+            <p>Ingresa cuatro pares de latitud y longitud para generar un polígono base.</p>
+
+            <div class="coord-inputs">
+                <input type="text" id="p1" placeholder="Punto 1: 19.33, -99.11">
+                <input type="text" id="p2" placeholder="Punto 2: 19.33, -99.10">
+                <input type="text" id="p3" placeholder="Punto 3: 19.32, -99.10">
+                <input type="text" id="p4" placeholder="Punto 4: 19.32, -99.11">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-stop" id="coord-cancel" type="button">Cancelar</button>
+                <button class="btn-sim" id="coord-submit" type="button">Crear área</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+</body>
+</html>

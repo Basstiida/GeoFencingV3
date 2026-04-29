@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Tester</title>
+</head>
+<body>
+    <h1>Receptor de WebSockets</h1>
+    <p>Abre la consola del navegador para ver los mensajes del servidor.</p>
+    <div id="messages"></div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    
+    <script>
+        // 1. Nos conectamos a nuestro servidor local
+        const socket = io("http://127.0.0.1:5000");
+
+        socket.on("connect", () => {
+            console.log("¡Conectado al servidor con éxito! ID de socket:", socket.id);
+            document.getElementById("messages").innerHTML += "<p>Conectado al servidor.</p>";
+        });
+
+        // 2. Este es el "receptor": escucha el evento 'new_location'
+        socket.on('new_location', (data) => {
+            console.log('Evento "new_location" recibido:', data);
+            
+            // Mostramos los datos en la página y en la consola
+            const message = `Ubicación recibida: Latitud ${data.lat}, Longitud ${data.lng}`;
+            document.getElementById("messages").innerHTML += `<p>${message}</p>`;
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Desconectado del servidor.");
+        });
+    </script>
+</body>
+</html>

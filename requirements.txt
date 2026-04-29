@@ -1,0 +1,7 @@
+Flask
+Flask-SocketIO
+Flask-Cors
+Shapely
+Flask-SQLAlchemy
+Flask-Bcrypt
+psycopg[binary]

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso - GeoTracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <style>
+        /* Ajuste específico para que el cuadro de registro sea más ancho */
+        .register-card {
+            width: min(520px, 100%);
+            padding: 2.5rem;
+        }
+        /* Organizar los campos en dos columnas si lo deseas, o mantenerlos en lista */
+        .input-group input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body class="auth-body">
+    <div id="particles-js"></div>
+    <div class="overlay"></div> 
+    <main class="main-content">
+        
+
+        <div class="login-card register-card">
+            <h2>Crear Cuenta</h2>
+            <form id="registerForm">
+                <div class="input-group">
+                    <input type="text" id="nombre" placeholder="Nombre(s)" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="paterno" placeholder="Apellido Paterno" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="materno" placeholder="Apellido Materno" required>
+                </div>
+                <div class="input-group">
+                    <input type="tel" id="telefono" placeholder="Número Telefónico" required>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="email" placeholder="Correo electrónico" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Contraseña" required>
+                </div>
+                
+                <button type="submit" class="btn-main">Registrarme</button>
+            </form>
+
+            <div class="footer-links">
+                <p>¿Ya tienes cuenta? <a href="/">Inicia sesión aquí</a></p>
+            </div>
+        </div>
+    </main>
+    <div id="auth-modal" class="auth-modal" hidden>
+        <div class="auth-modal-backdrop" data-close-modal="true"></div>
+        <div id="auth-modal-dialog" class="auth-modal-dialog" data-tone="loading" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+            <div class="auth-modal-icon" aria-hidden="true">
+                <span class="auth-modal-spinner"></span>
+                <span class="auth-modal-symbol">!</span>
+            </div>
+            <h3 id="auth-modal-title">No se pudo completar la solicitud</h3>
+            <p id="auth-modal-message"></p>
+            <button id="auth-modal-close" type="button" class="auth-modal-button">Cerrar</button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="{{ url_for('static', filename='js/particles-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+</body>
+</html>
