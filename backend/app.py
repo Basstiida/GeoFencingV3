@@ -3,6 +3,8 @@ import re
 import urllib
 import json
 from datetime import timedelta, datetime
+import requests
+#Token Telegram: 8777210619:AAFeIlaVcx8FYh4OkMTwTHtg9NX7ejmzJF0
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from flask_socketio import SocketIO
@@ -322,6 +324,8 @@ def update_location():
                 msg = f'{alias} salió de {zone_name}.'
                 socketio.emit('geofence_event', {'status': 'INFO', 'message': msg})
                 app.logger.info(f"SALIDA: {msg}")
+                enviar_alerta_telegram(f"<b>ACTUALIZACIÓN</b>\n{msg}\n Hora: {datetime.now().strftime('%H:%M:%S')}")
+
 
         socketio.emit('geofence_event', {
             'status': estado_panel, 
@@ -341,8 +345,9 @@ def update_location():
         import traceback
         app.logger.error(f"Error crítico en update_location: {traceback.format_exc()}")
         return jsonify({"message": f"Error en Python: {str(e)}"}), 500
+    
 
-# --- ARTURO AUTH (Igual que antes) ---
+# --- ARTURO AUTH ---
 @app.route("/api/register", methods=['POST'])
 def register():
     try:
@@ -690,6 +695,29 @@ def get_map_zones(id_mapa):
         "nombre_mapa": mapa.nombre_mapa,
         "zonas": zonas_data
     }), 200
+
+# --- CONFIGURACIÓN DE TELEGRAM ---
+TELEGRAM_BOT_TOKEN = '1'
+TELEGRAM_CHAT_ID = '2'
+
+def enviar_alerta_telegram(mensaje):
+    """Envía un mensaje de texto a través del bot de Telegram"""
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": mensaje,
+            "parse_mode": "HTML" 
+        }
+        response = requests.post(url, json=payload, timeout=5)
+        
+        if response.status_code == 200:
+            app.logger.info("Notificación de Telegram enviada con éxito.")
+        else:
+            app.logger.warning(f"Error al enviar Telegram: {response.text}")
+    except Exception as e:
+        app.logger.error(f"Falla de conexión con la API de Telegram: {str(e)}")
+
 # --- ESTO SIEMPRE DEBE IR HASTA EL FINAL DEL ARCHIVO ---
 if __name__ == "__main__":
     if os.getenv("AUTO_CREATE_TABLES") == "1":
@@ -697,3 +725,5 @@ if __name__ == "__main__":
             db.create_all()
     port = int(os.getenv("PORT", "5000"))
     socketio.run(app, host='0.0.0.0', port=port, debug=True)
+
+    
