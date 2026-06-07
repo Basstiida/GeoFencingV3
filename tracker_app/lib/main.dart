@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http;   
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 // ⚠️ ¡IMPORTANTE! REVISA QUE ESTA URL SEA LA QUE TE DIO NGROK HOY ⚠️
-const String NGROK_URL = "tectricial-leon-unhurryingly.ngrok-free.dev";
+const String NGROK_URL = "hypsometrical-comfily-berniece.ngrok-free.dev";
 
 // Helpers de protocolo
 String getHttpProtocol() => NGROK_URL.contains('ngrok') ? 'https' : 'http';
