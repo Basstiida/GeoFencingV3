@@ -44,6 +44,24 @@ const ui = {
     navStopButton: document.getElementById("nav-stop-sim"),
     navProfileButton: document.getElementById("nav-profile"),
     navLogoutButton: document.getElementById("nav-logout"),
+    //LILYGO
+    navAddDeviceButton: document.getElementById("nav-add-device"),
+    deviceModal: document.getElementById("deviceModal"),
+    deviceCancelButton: document.getElementById("device-cancel"),
+    deviceSubmitButton: document.getElementById("device-submit"),
+    deviceIdInput: document.getElementById("device-id-input"),
+    deviceAliasInput: document.getElementById("device-alias-input"),
+    //evitar q aparezcan varios dispositivos al mismo tiempo
+    deviceDropdownBtn: document.getElementById("btn-device-dropdown"),
+    deviceDropdownMenu: document.getElementById("device-dropdown-menu"),
+    deviceListContainer: document.getElementById("device-list-container"),
+    openLinkModalBtn: document.getElementById("btn-open-link-modal"),
+    editDeviceModal: document.getElementById("editDeviceModal"),
+    editDeviceCancel: document.getElementById("edit-device-cancel"),
+    editDeviceSubmit: document.getElementById("edit-device-submit"),
+    editDeviceIdInput: document.getElementById("edit-device-id"),
+    editDeviceAliasInput: document.getElementById("edit-device-alias"),
+    editDeviceColorInput: document.getElementById("edit-device-color"),
 };
 
 const state = {
@@ -59,7 +77,10 @@ const state = {
     currentMapId: null,
     routePoints: [],
     isSimulating: false,
-    simPolyline: null
+    simPolyline: null,
+    activeDevices: new Set(),
+    deviceColors: {}, 
+    colorPalette: ['#43be83', '#4dabf7', '#ff6b6b', '#fcc419', '#ae3ec9', '#fd7e14']
 };
 
 const iconMarkup = {
@@ -721,14 +742,35 @@ socket.on("new_location", (data) => {
     const lng = Number.parseFloat(data.lng);
     const deviceId = data.device_id || "dispositivo";
     const alias = data.alias || deviceId;
-    const markerKey = alias;
+    const markerKey = deviceId;
 
     if (Number.isNaN(lat) || Number.isNaN(lng)) {
         return;
     }
 
+    if (deviceId !== "simulador_bot" && !state.activeDevices.has(deviceId)) {
+        return;
+    }
+
+    const dotColor = state.deviceColors[deviceId] || "#ffaa00";
+
+    const customIcon = L.divIcon({
+        className: 'clear-custom-marker', // Usamos una clase limpia
+        html: `
+            <div style="position: relative; display: flex; justify-content: center; align-items: center; width: 16px; height: 16px;">
+                <div style="position: absolute; bottom: 20px; background: rgba(17, 20, 24, 0.85); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; white-space: nowrap; border: 1px solid rgba(255, 255, 255, 0.15); pointer-events: none; box-shadow: 0 2px 6px rgba(0,0,0,0.4);">
+                    ${escapeHtml(alias)}
+                </div>
+                <div style="width: 14px; height: 14px; background: ${dotColor}; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.5);"></div>
+            </div>
+        `,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8], 
+    });
+
     if (state.markers[markerKey]) {
-        state.markers[markerKey].setLatLng([lat, lng]).bindPopup(escapeHtml(alias));
+        // Actualizamos la posición y el ícono
+        state.markers[markerKey].setLatLng([lat, lng]).setIcon(customIcon);
         return;
     }
 
@@ -739,11 +781,10 @@ socket.on("new_location", (data) => {
         return;
     }
 
-    state.markers[markerKey] = L.marker([lat, lng]).addTo(map).bindPopup(escapeHtml(alias));
+    state.markers[markerKey] = L.marker([lat, lng], { icon: customIcon }).addTo(map);
 });
 
 socket.on("geofence_event", (data) => {
-    // Si viene la bandera "silent", solo actualiza el UI general pero no saca notificación
     if (data.silent) {
         setAlertState(data.status, data.message);
         return; 
@@ -897,6 +938,139 @@ function restoreZoneFromProfile() {
     }
 }
 
+async function loadUserDevices() {
+    try {
+        const devices = await apiRequest("/api/my_devices", { method: "GET" });
+        ui.deviceListContainer.innerHTML = "";
+        
+        if (devices.length === 0) {
+            ui.deviceListContainer.innerHTML = '<div style="padding: 8px 16px; color: #888; font-size: 0.9rem;">Sin dispositivos</div>';
+            return;
+        }
+
+        devices.forEach((device) => {
+            const deviceColor = device.color || "#43be83";
+            state.deviceColors[device.device_id] = deviceColor; 
+            
+            const isOnline = state.activeDevices.has(device.device_id);
+
+            const row = document.createElement("div");
+            row.className = "dropdown-item";
+            row.style.cursor = "default"; 
+            row.style.display = "flex";
+            row.style.alignItems = "center";
+            row.style.gap = "12px";
+
+            const eyeIcon = isOnline 
+                ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>' 
+                : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+
+            row.innerHTML = `
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: ${deviceColor}; flex-shrink: 0; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>
+                <span style="flex-grow: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: ${isOnline ? '#fff' : '#888'}; transition: color 0.3s;">
+                    ${escapeHtml(device.alias)}
+                </span>
+                <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                    <button class="btn-edit-device" style="background: transparent; border: none; color: #aaa; cursor: pointer; padding: 4px; border-radius: 4px;" title="Editar">
+                        <svg class="ui-icon" style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </button>
+                    <button class="btn-toggle-device" style="background: transparent; border: none; color: ${isOnline ? '#43be83' : '#555'}; cursor: pointer; padding: 4px; border-radius: 4px;" title="Mostrar/Ocultar">
+                        <svg class="ui-icon" style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            ${eyeIcon}
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            const toggleBtn = row.querySelector(".btn-toggle-device");
+            toggleBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (state.activeDevices.has(device.device_id)) {
+                    state.activeDevices.delete(device.device_id);
+                    // Ocultamos el marcador inmediatamente
+                    if (state.markers[device.device_id]) {
+                        map.removeLayer(state.markers[device.device_id]);
+                        delete state.markers[device.device_id];
+                    }
+                    showToast(`${device.alias} oculto del mapa.`, "info", "Monitor");
+                } else {
+                    state.activeDevices.add(device.device_id);
+                    showToast(`${device.alias} activado. Esperando señal...`, "success", "Monitor");
+                }
+                loadUserDevices(); 
+            });
+
+            // Lógica del botón Editar (Lápiz)
+            const editBtn = row.querySelector(".btn-edit-device");
+            
+            // Usamos onmousedown además de click para evitar que otros scripts bloqueen el evento
+            editBtn.onmousedown = (e) => {
+                e.preventDefault(); // Evita que pierda el foco
+                e.stopPropagation(); // Evita que se cierre el menú antes de tiempo
+                
+                // 1. Llenamos los datos
+                if (ui.editDeviceIdInput) ui.editDeviceIdInput.value = device.device_id;
+                if (ui.editDeviceAliasInput) ui.editDeviceAliasInput.value = device.alias;
+                if (ui.editDeviceColorInput) ui.editDeviceColorInput.value = deviceColor;
+                
+                // 2. Ocultamos el menú desplegable
+                if (ui.deviceDropdownMenu) ui.deviceDropdownMenu.classList.remove("show");
+                
+                // 3. Mostramos la ventana de edición
+                if (ui.editDeviceModal) {
+                    ui.editDeviceModal.style.display = "flex";
+                }
+            };
+
+            ui.deviceListContainer.appendChild(row);
+        });
+    } catch (error) {
+        showToast("Error al cargar dispositivos.", "warning");
+    }
+}
+
+async function saveDeviceEditAction() {
+    const deviceId = ui.editDeviceIdInput.value;
+    const newAlias = ui.editDeviceAliasInput.value.trim();
+    const newColor = ui.editDeviceColorInput.value;
+
+    if (!newAlias) {
+        showToast("El alias no puede estar vacío.", "warning");
+        return;
+    }
+
+    setButtonBusy(ui.editDeviceSubmit, true, "Guardando...");
+
+    try {
+        await apiRequest("/api/edit_device", {
+            method: "POST",
+            body: JSON.stringify({
+                device_id: deviceId,
+                alias: newAlias,
+                color: newColor
+            })
+        });
+
+        showToast("Dispositivo actualizado.", "success");
+        ui.editDeviceModal.style.display = "none";
+        
+        // Si el marcador está en el mapa, lo borramos para que se dibuje con el nuevo color en el próximo parpadeo
+        if (state.markers[deviceId]) {
+            map.removeLayer(state.markers[deviceId]);
+            delete state.markers[deviceId];
+        }
+        
+        await loadUserDevices(); // Recargamos la UI
+    } catch (error) {
+        showToast(error.message, "error");
+    } finally {
+        setButtonBusy(ui.editDeviceSubmit, false);
+    }
+}
+
 async function searchPlace() {
     const query = ui.searchInput.value.trim();
     if (!query) return;
@@ -993,7 +1167,12 @@ function bindEvents() {
     ui.navLogoutButton.addEventListener("click", () => {
         window.location.href = "/logout";
     });
-
+    // Eventos del modal de la LILYGO
+    if (ui.editDeviceCancel) ui.editDeviceCancel.addEventListener("click", () => ui.editDeviceModal.style.display = "none");
+    if (ui.editDeviceSubmit) ui.editDeviceSubmit.addEventListener("click", saveDeviceEditAction);
+    if (ui.navAddDeviceButton) ui.navAddDeviceButton.addEventListener("click", openDeviceModal);
+    if (ui.deviceCancelButton) ui.deviceCancelButton.addEventListener("click", closeDeviceModal);
+    if (ui.deviceSubmitButton) ui.deviceSubmitButton.addEventListener("click", linkDeviceAction);
     ui.saveMapButton.addEventListener("click", saveMap);
     ui.searchButton.addEventListener("click", searchPlace);
     ui.searchInput.addEventListener("keydown", (event) => {
@@ -1016,7 +1195,27 @@ function bindEvents() {
             closeMenu();
         }
     });
+  
+    ui.deviceDropdownBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        ui.deviceDropdownMenu.classList.toggle("show");
+        if (ui.drawDropdownMenu) ui.drawDropdownMenu.classList.remove("show"); 
+    });
 
+    ui.openLinkModalBtn.addEventListener("click", () => {
+        ui.deviceDropdownMenu.classList.remove("show");
+        openDeviceModal(); 
+    });
+
+
+    document.addEventListener("click", (event) => {
+        
+        if (ui.deviceDropdownMenu.classList.contains("show") &&
+            !ui.deviceDropdownMenu.contains(event.target) &&
+            !ui.deviceDropdownBtn.contains(event.target)) {
+            ui.deviceDropdownMenu.classList.remove("show");
+        }
+    });
     map.on("click", handleMapClick);
     map.on("mousemove", handleMapMouseMove);
 }
@@ -1029,6 +1228,49 @@ async function init() {
     setSidebarStatus("En espera de interacción.");
     await loadMapContext();
     restoreZoneFromProfile();
+    await loadUserDevices();
+}
+
+// --- LÓGICA DE VINCULACIÓN LILYGO ---
+function openDeviceModal() {
+    closeMenu(); // Cierra la barra lateral para que no estorbe
+    ui.deviceIdInput.value = "";
+    ui.deviceAliasInput.value = "";
+    ui.deviceModal.style.display = "flex";
+}
+
+function closeDeviceModal() {
+    ui.deviceModal.style.display = "none";
+}
+
+async function linkDeviceAction() {
+    const deviceId = ui.deviceIdInput.value.trim();
+    const alias = ui.deviceAliasInput.value.trim();
+
+    if (!deviceId || !alias) {
+        showToast("Por favor ingresa tanto el ID como el Alias.", "warning", "Datos incompletos");
+        return;
+    }
+
+    // Usamos tu función para bloquear el botón mientras procesa
+    setButtonBusy(ui.deviceSubmitButton, true, "Vinculando...");
+
+    try {
+        // Hacemos el POST usando tu propia función centralizada apiRequest
+        const data = await apiRequest("/api/link_device", {
+            method: "POST",
+            body: JSON.stringify({ device_id: deviceId, alias: alias })
+        });
+
+        showToast(`El dispositivo "${alias}" se vinculó correctamente.`, "success", "Listo");
+        closeDeviceModal();
+    } catch (error) {
+        // Tu apiRequest ya extrae el mensaje de error de Flask automáticamente
+        showToast(error.message, "error", "Error al vincular");
+    } finally {
+        // Desbloqueamos el botón al terminar
+        setButtonBusy(ui.deviceSubmitButton, false);
+    }
 }
 
 init();

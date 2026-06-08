@@ -16,6 +16,15 @@ const dashboardUi = {
     settingsButton: document.getElementById("profile-settings-btn"),
     profileLogoutButton: document.getElementById("profile-logout-btn"),
     sidebarLogoutButton: document.getElementById("sidebar-logout-btn"),
+    //DISPOSITIVOS
+    deviceTabButton: document.getElementById("btn-tab-dispositivos"),
+    deviceSection: document.getElementById("seccion-dispositivos"),
+    addDeviceBtn: document.getElementById("btn-add-device-dash"),
+    deviceModalDash: document.getElementById("deviceModalDash"),
+    dashDeviceCancel: document.getElementById("dash-device-cancel"),
+    dashDeviceSubmit: document.getElementById("dash-device-submit"),
+    dashDeviceIdInput: document.getElementById("dash-device-id"),
+    dashDeviceAliasInput: document.getElementById("dash-device-alias"),
 };
 
 const deleteState = {
@@ -86,6 +95,9 @@ function openDeleteModal(type, id) {
     if (type === "map") {
         dashboardUi.deleteModalTitle.textContent = "Eliminar mapa";
         dashboardUi.deleteModalCopy.textContent = "El mapa se eliminará y sus geocercas quedarán sin mapa asignado. Esta acción no se puede deshacer.";
+    } else if (type === "device") {
+        dashboardUi.deleteModalTitle.textContent = "Desvincular LILYGO";
+        dashboardUi.deleteModalCopy.textContent = "El dispositivo dejará de transmitir a tu cuenta y se borrará del sistema. Esta acción no se puede deshacer.";
     } else {
         dashboardUi.deleteModalTitle.textContent = "Eliminar geocerca";
         dashboardUi.deleteModalCopy.textContent = "La geocerca se eliminará definitivamente. Esta acción no se puede deshacer.";
@@ -103,16 +115,16 @@ function closeDeleteModal() {
 async function confirmDeletion() {
     if (!deleteState.id || !deleteState.type) return;
 
-    const isMap = deleteState.type === "map";
-    const endpoint = isMap
-        ? `/api/delete_map/${deleteState.id}`
-        : `/api/delete_zone/${deleteState.id}`;
+    let endpoint = "";
+    if (deleteState.type === "map") endpoint = `/api/delete_map/${deleteState.id}`;
+    else if (deleteState.type === "device") endpoint = `/api/delete_device/${deleteState.id}`;
+    else endpoint = `/api/delete_zone/${deleteState.id}`;
 
     try {
         await apiRequest(endpoint, { method: "POST" });
         window.location.reload();
     } catch (error) {
-        showToast(error.message, "error", "No se pudo eliminar");
+        showToast(error.message, "error", "Error");
         closeDeleteModal();
     }
 }
@@ -184,6 +196,10 @@ function handleTableClick(event) {
 }
 
 function bindDashboardEvents() {
+    dashboardUi.deviceTabButton.addEventListener("click", showDeviceSection);
+    dashboardUi.addDeviceBtn.addEventListener("click", openDeviceModalDash);
+    dashboardUi.dashDeviceCancel.addEventListener("click", closeDeviceModalDash);
+    dashboardUi.dashDeviceSubmit.addEventListener("click", linkDeviceDashAction);
     dashboardUi.profileToggle.addEventListener("click", toggleProfileMenu);
     dashboardUi.geofenceTabButton.addEventListener("click", showGeofenceSection);
     dashboardUi.mapTabButton.addEventListener("click", showMapSection);
@@ -210,6 +226,65 @@ function bindDashboardEvents() {
     });
 
     document.addEventListener("click", handleTableClick);
+}
+function showDeviceSection() {
+    dashboardUi.geofenceSection.style.display = "none";
+    dashboardUi.mapSection.style.display = "none";
+    dashboardUi.deviceSection.style.display = "block";
+    
+    dashboardUi.deviceTabButton.classList.add("active");
+    dashboardUi.geofenceTabButton.classList.remove("active");
+    dashboardUi.mapTabButton.classList.remove("active");
+    
+    handleSearch({ target: dashboardUi.searchInput });
+}
+
+// Actualiza getVisibleRows para incluir la nueva tabla
+function getVisibleRows() {
+    if (dashboardUi.geofenceSection.style.display === "block") {
+        return [...dashboardUi.geofenceSection.querySelectorAll(".table-row")];
+    } else if (dashboardUi.mapSection.style.display === "block") {
+        return [...dashboardUi.mapSection.querySelectorAll(".table-row")];
+    } else {
+        return [...dashboardUi.deviceSection.querySelectorAll(".table-row")];
+    }
+}
+
+function openDeviceModalDash() {
+    dashboardUi.dashDeviceIdInput.value = "";
+    dashboardUi.dashDeviceAliasInput.value = "";
+    dashboardUi.deviceModalDash.style.display = "flex";
+}
+
+function closeDeviceModalDash() {
+    dashboardUi.deviceModalDash.style.display = "none";
+}
+
+async function linkDeviceDashAction() {
+    const deviceId = dashboardUi.dashDeviceIdInput.value.trim();
+    const alias = dashboardUi.dashDeviceAliasInput.value.trim();
+
+    if (!deviceId || !alias) {
+        showToast("Por favor ingresa tanto el ID como el Alias.", "warning", "Datos incompletos");
+        return;
+    }
+
+    const btn = dashboardUi.dashDeviceSubmit;
+    const originalText = btn.textContent;
+    btn.textContent = "Vinculando...";
+    btn.disabled = true;
+
+    try {
+        await apiRequest("/api/link_device", {
+            method: "POST",
+            body: JSON.stringify({ device_id: deviceId, alias: alias })
+        });
+        window.location.reload(); // Recarga para ver la tabla actualizada
+    } catch (error) {
+        showToast(error.message, "error", "Error al vincular");
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
 }
 
 bindDashboardEvents();

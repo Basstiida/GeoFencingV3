@@ -76,6 +76,34 @@
         </div>
     </div>
 
+    <div class="device-tools-container" style="position: absolute; top: 160px; left: 24px; z-index: 1000; display: flex;">
+        <div class="dropdown-wrapper">
+            <button id="btn-device-dropdown" class="main-draw-btn" type="button" style="width: auto; padding: 0 16px; gap: 8px;">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    <path d="M12 8v4"></path>
+                    <path d="M10 10h4"></path>
+                </svg>
+                <span>Dispositivos</span>
+            </button>
+
+            <div id="device-dropdown-menu" class="dropdown-menu" style="min-width: 220px;">
+                <div id="device-list-container"></div>
+                
+                <div class="dropdown-divider" style="height: 1px; background: var(--border-color); margin: 8px 0;"></div>
+                
+                <button class="dropdown-item" id="btn-open-link-modal" type="button" style="color: #43be83;">
+                    <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Vincular un dispositivo</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="geofence-creator-panel" id="geo-panel">
         <div class="geofence-header" id="geo-panel-header">
             <div>
@@ -143,6 +171,16 @@
                 <span>Simular ruta</span>
             </button>
 
+            <button class="nav-link" id="nav-add-device" type="button">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    <path d="M12 8v4"></path>
+                    <path d="M10 10h4"></path>
+                </svg>
+                <span>Agregar LILYGO</span>
+            </button>
+
             <button class="nav-link" id="nav-stop-sim" type="button">
                 <svg class="ui-icon" viewBox="0 0 24 24" fill="currentColor">
                     <rect x="7" y="7" width="10" height="10" rx="1.5"></rect>
@@ -195,7 +233,44 @@
             </div>
         </div>
     </div>
+    <div id="deviceModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass">
+            <h3>Vincular LILYGO</h3>
+            <p>Ingresa el ID único de tu placa y asígnale un alias para identificarla en el mapa.</p>
 
+            <div class="coord-inputs" style="grid-template-columns: 1fr; gap: 15px;">
+                <input type="text" id="device-id-input" placeholder="ID de la placa (ej. LILY-001)">
+                <input type="text" id="device-alias-input" placeholder="Alias (ej. Auto Jetta)">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-stop" id="device-cancel" type="button">Cancelar</button>
+                <button class="btn-sim" id="device-submit" type="button">Vincular dispositivo</button>
+            </div>
+        </div>
+    </div>
+    <div id="editDeviceModal" class="modal-overlay" style="display: none; z-index: 10001;">
+        <div class="modal-content glass">
+            <h3>Editar Dispositivo</h3>
+            <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 0.95rem;">Cambia el alias o el color del rastreador en el mapa.</p>
+
+            <input type="hidden" id="edit-device-id">
+
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <input type="text" id="edit-device-alias" placeholder="Nuevo Alias" style="width: 100%; background: var(--surface-2); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px; font-family: inherit;">
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <label for="edit-device-color" style="color: var(--text-secondary); font-size: 0.95rem;">Color del marcador:</label>
+                    <input type="color" id="edit-device-color" style="background: none; border: none; cursor: pointer; height: 32px; width: 32px; padding: 0;">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" id="edit-device-cancel" type="button">Cancelar</button>
+                <button class="btn-sim" id="edit-device-submit" type="button" style="background: #43be83; color: #0a0a0a;">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 </body>
 </html>

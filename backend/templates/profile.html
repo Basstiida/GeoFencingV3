@@ -89,6 +89,16 @@
                         <span>Mapas</span>
                     </button>
 
+                    <button type="button" id="btn-tab-dispositivos" class="nav-link">
+                        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                            <path d="M12 8v4"></path>
+                            <path d="M10 10h4"></path>
+                        </svg>
+                        <span>Dispositivos</span>
+                    </button>
+
                     <button type="button" id="sidebar-logout-btn" class="nav-link nav-link-danger">
                         <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 7l5 5-5 5"></path>
@@ -188,9 +198,82 @@
                         </div>
                     </div>
                 </section>
+                <section id="seccion-dispositivos" style="display: none;">
+                    <div class="section-head">
+                        <div>
+                            <span class="section-kicker">Flota</span>
+                            <h2 class="section-title">Tus dispositivos</h2>
+                        </div>
+                        <p class="section-copy">
+                            <button id="btn-add-device-dash" class="btn-action-delete" style="color: #43be83; border-color: #43be83; display: inline-flex; width: auto; padding: 6px 12px; background: rgba(67, 190, 131, 0.1);" type="button">
+                                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span style="color: #43be83;">Vincular nuevo dispositivo</span>
+                            </button>
+                        </p>
+                    </div>
+
+                    <div class="data-panel geofence-panel">
+                        <div class="table-header">
+                            <div class="col-name" style="flex: 2;">Alias</div>
+                            <div class="col-points" style="flex: 2;">ID de Placa</div>
+                            <div class="col-date">Tipo</div>
+                            <div class="col-actions">Acciones</div>
+                        </div>
+
+                        <div class="table-body" data-table="dispositivos">
+                            {% for device in dispositivos %}
+                            <div class="table-row" data-search="{{ device.alias|lower }} {{ device.device_id|lower }}">
+                                <div class="col-name" style="flex: 2;">{{ device.alias }}</div>
+                                <div class="col-points" style="flex: 2; font-family: monospace; color: #8eb7ff;">{{ device.device_id }}</div>
+                                <div class="col-date">
+                                    <span style="background: rgba(142, 183, 255, 0.15); color: #8eb7ff; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">
+                                        LILYGO T-SIM
+                                    </span>
+                                </div>
+                                <div class="col-actions">
+                                    <button class="btn-action-delete" type="button" data-delete-type="device" data-delete-id="{{ device.id }}" title="Eliminar dispositivo">
+                                        <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M4 7h16"></path>
+                                            <path d="M9 7V4h6v3"></path>
+                                            <path d="M7 7l1 12h8l1-12"></path>
+                                        </svg>
+                                        <span>Desvincular</span>
+                                    </button>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="empty-state">
+                                <h3>No tienes hardware vinculado</h3>
+                                <p>Da de alta tu primera placa LILYGO para comenzar a rastrearla en tiempo real.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
             </main>
         </div>
     </div>
+    <div id="deviceModalDash" class="custom-modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Vincular LILYGO</h3>
+            <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 0.95rem;">Ingresa el ID único de tu placa y un alias.</p>
+
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                <input type="text" id="dash-device-id" placeholder="ID de la placa (ej. LILY-001)" style="width: 100%; background: var(--surface-2); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px; font-family: inherit;">
+                <input type="text" id="dash-device-alias" placeholder="Alias (ej. Auto Jetta)" style="width: 100%; background: var(--surface-2); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px; font-family: inherit;">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" id="dash-device-cancel" type="button">Cancelar</button>
+                <button class="btn-confirm-delete" id="dash-device-submit" type="button" style="background: #43be83; color: #0a0a0a;">Vincular</button>
+            </div>
+        </div>
+    </div>
+
+    
 
     <div id="deleteModal" class="custom-modal">
         <div class="modal-content">

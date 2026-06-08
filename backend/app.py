@@ -93,6 +93,7 @@ class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     device_id = db.Column(db.String(50), unique=True, nullable=False)
     alias = db.Column(db.String(50), nullable=False)
+    color = db.Column(db.String(20), default="#43be83") 
     user_id = db.Column(db.Integer, db.ForeignKey('Usuarios.id'), nullable=False)
 
 class Mapa(db.Model):
@@ -223,15 +224,7 @@ def get_dynamic_zone_polygons(user_id, map_id=None):
 # --- ZONAS (GEOCERCAS) ---
 
 # 1. Zonas Fijas
-ZOCALO_POLYGON = Polygon([
-    (-99.1352, 19.4340), (-99.1314, 19.4340), 
-    (-99.1314, 19.4315), (-99.1352, 19.4315), 
-])
 
-ESIME_POLYGON = Polygon([
-    (-99.1153, 19.3310), (-99.1103, 19.3310), 
-    (-99.1103, 19.3260), (-99.1153, 19.3260), 
-])
 
 # 2. Zonas Dinámicas (Lista vacía al inicio)
 CUSTOM_ZONES = [] 
@@ -288,13 +281,10 @@ def update_location():
         if device_id not in DEVICE_ZONE_STATES:
             DEVICE_ZONE_STATES[device_id] = {}
 
-        zonas_a_revisar = [
-            {"name": "Zócalo", "polygon": ZOCALO_POLYGON},
-            {"name": "ESIME Culhuacán", "polygon": ESIME_POLYGON}
-        ]
-        zonas_a_revisar.extend(get_dynamic_zone_polygons(user_id, map_id))
+        # Cargamos únicamente las zonas creadas por el usuario en este mapa
+        zonas_a_revisar = get_dynamic_zone_polygons(user_id, map_id)
 
-        # --- NUEVO: Variables para mantener el color del panel ---
+        # --- Variables para mantener el color del panel ---
         estado_panel = 'SAFE'
         mensaje_panel = 'Monitoreo activo.'
 
@@ -303,8 +293,8 @@ def update_location():
             is_inside = zone["polygon"].contains(user_location)
             was_inside = DEVICE_ZONE_STATES[device_id].get(zone_name, False)
 
-            # ESIME es advertencia (amarillo), las demás son peligro (rojo)
-            nivel_alerta = 'WARNING' if zone_name == "ESIME Culhuacán" else 'DANGER'
+            # Todas las zonas personalizadas generarán alerta de peligro (DANGER) por defecto
+            nivel_alerta = 'DANGER'
 
             # Si está adentro en este momento, el panel debe reflejar peligro
             if is_inside:
@@ -345,8 +335,91 @@ def update_location():
         import traceback
         app.logger.error(f"Error crítico en update_location: {traceback.format_exc()}")
         return jsonify({"message": f"Error en Python: {str(e)}"}), 500
-    
 
+#---------ARTURO Y LILYGO POR SIEMPRE------------------------------------
+@app.route("/api/update_lilygo_location", methods=['POST'])
+def update_lilygo_location():
+    try:
+        data = get_json_body()
+        lat = float(data["lat"])
+        lng = float(data["lng"])
+        
+        
+        device_id = normalize_text(data.get("device_id")) or "unknown"
+        
+        
+        device_db = Device.query.filter_by(device_id=device_id).first()
+        if not device_db:
+            return jsonify({"message": f"El dispositivo {device_id} no está registrado en el sistema."}), 404
+            
+        alias = device_db.alias
+        user_id = device_db.user_id
+        map_id = data.get("map_id")  
+        
+        user_location = Point(lng, lat)
+        
+        
+        if device_id not in DEVICE_ZONE_STATES:
+            DEVICE_ZONE_STATES[device_id] = {}
+
+        
+        # Cargamos únicamente las zonas creadas por el usuario en este mapa
+        zonas_a_revisar = get_dynamic_zone_polygons(user_id, map_id)
+
+        estado_panel = 'SAFE'
+        mensaje_panel = 'Monitoreo activo.'
+
+        for zone in zonas_a_revisar:
+            zone_name = zone["name"]
+            is_inside = zone["polygon"].contains(user_location)
+            was_inside = DEVICE_ZONE_STATES[device_id].get(zone_name, False)
+
+            # Todas las zonas personalizadas generarán alerta de peligro (DANGER) por defecto
+            nivel_alerta = 'DANGER'
+
+            if is_inside:
+                estado_panel = nivel_alerta
+                mensaje_panel = f'Dentro de {zone_name}'
+
+            
+            if is_inside and not was_inside:
+                DEVICE_ZONE_STATES[device_id][zone_name] = True
+                msg = f'{alias} entró a {zone_name}.'
+                socketio.emit('geofence_event', {'status': nivel_alerta, 'message': msg})
+                app.logger.info(f"ENTRADA LILYGO: {msg}")
+                enviar_alerta_telegram(f"<b>ALERTA DE ENTRADA</b>\n{msg}\nHora: {datetime.now().strftime('%H:%M:%S')}")
+                
+            
+            elif not is_inside and was_inside:
+                DEVICE_ZONE_STATES[device_id][zone_name] = False
+                msg = f'{alias} salió de {zone_name}.'
+                socketio.emit('geofence_event', {'status': 'INFO', 'message': msg})
+                app.logger.info(f"SALIDA LILYGO: {msg}")
+                enviar_alerta_telegram(f"<b>ALERTA DE SALIDA</b>\n{msg}\nHora: {datetime.now().strftime('%H:%M:%S')}")
+
+        
+        socketio.emit('geofence_event', {
+            'status': estado_panel, 
+            'message': mensaje_panel, 
+            'silent': True
+        })
+
+        
+        data_to_emit = {
+            'lat': lat,
+            'lng': lng,
+            'alias': alias,
+            'device_id': device_id
+        }
+        socketio.emit('new_location', data_to_emit)
+        
+        return jsonify({"status": "success", "message": "Datos de la LILYGO procesados correctamente."})
+
+    except Exception as e:
+        import traceback
+        app.logger.error(f"Error crítico en update_lilygo_location: {traceback.format_exc()}")
+        return jsonify({"message": f"Error en Python: {str(e)}"}), 500
+    
 # --- ARTURO AUTH ---
 @app.route("/api/register", methods=['POST'])
 def register():
@@ -421,9 +494,81 @@ def login():
 
 @app.route("/api/link_device", methods=['POST'])
 def link_device():
-    # (Usa el código anterior de link_device)
-    return jsonify({"msg": "ok"}), 200
+    user, auth_error = get_authenticated_user()
+    if auth_error:
+        return auth_error
 
+    try:
+        data = get_json_body()
+    except ValueError as error:
+        return json_response(str(error), 400)
+
+    device_id = normalize_text(data.get("device_id"))
+    alias = normalize_text(data.get("alias"))
+
+    if not device_id or not alias:
+        return json_response("Debes ingresar el ID único de la LILYGO y un Alias (ej. 'Vehículo 1').", 400)
+
+    dispositivo_existente = Device.query.filter_by(device_id=device_id).first()
+    if dispositivo_existente:
+        return json_response("Este ID de dispositivo ya se encuentra registrado en el sistema.", 400)
+
+    try:
+        nuevo_dispositivo = Device(
+            device_id=device_id,
+            alias=alias,
+            user_id=user.id
+        )
+        db.session.add(nuevo_dispositivo)
+        db.session.commit()
+        app.logger.info(f"Dispositivo '{alias}' ({device_id}) vinculado exitosamente al usuario ID {user.id}")
+        
+        return json_response("Dispositivo vinculado correctamente.", 200, device_id=device_id)
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Error al vincular el dispositivo en la base de datos.")
+        return json_response("No se pudo guardar el dispositivo por un error interno.", 500)
+
+@app.route("/api/my_devices", methods=['GET'])
+def my_devices():
+    user, auth_error = get_authenticated_user()
+    if auth_error:
+        return auth_error
+
+    dispositivos = Device.query.filter_by(user_id=user.id).all()
+    data = [{"device_id": d.device_id, "alias": d.alias, "color": d.color or "#43be83"} for d in dispositivos]
+    
+    return jsonify(data), 200
+
+@app.route("/api/edit_device", methods=['POST'])
+def edit_device():
+    user, auth_error = get_authenticated_user()
+    if auth_error:
+        return auth_error
+
+    try:
+        data = get_json_body()
+        device_id = normalize_text(data.get("device_id"))
+        new_alias = normalize_text(data.get("alias"))
+        new_color = normalize_text(data.get("color"))
+
+        device = Device.query.filter_by(device_id=device_id, user_id=user.id).first()
+        if not device:
+            return json_response("Dispositivo no encontrado.", 404)
+
+        if new_alias:
+            device.alias = new_alias
+        if new_color:
+            device.color = new_color
+
+        db.session.commit()
+        return json_response("Dispositivo actualizado correctamente.", 200)
+
+    except Exception:
+        db.session.rollback()
+        return json_response("No se pudo actualizar el dispositivo.", 500)
+    
 # Ruta Registro
 @app.route('/register-view')
 def register_view():
@@ -508,15 +653,18 @@ def profile():
     if user:
         mis_zonas = Geocerca.query.filter_by(id_usuario=user.id).all()
         mis_mapas = Mapa.query.filter_by(id_usuario=user.id).all() 
+        mis_dispositivos = Device.query.filter_by(user_id=user.id).all()
     else:
         mis_zonas = []
         mis_mapas = []
+        mis_dispositivos = []
 
     return render_template('profile.html', 
                            email_html=user.email, 
                            nombre_html=build_user_display_name(user),
                            geocercas=mis_zonas,
-                           mapas=mis_mapas)
+                           mapas=mis_mapas,
+                           dispositivos=mis_dispositivos)
 
 
 @app.route("/api/profile", methods=["POST"])
@@ -617,7 +765,29 @@ def delete_map(id_mapa):
         app.logger.exception("Error al eliminar mapa.")
         return json_response("No se pudo eliminar el mapa.", 500)
     
+@app.route("/api/delete_device/<int:id_device>", methods=['POST'])
+def delete_device(id_device):
+    user, auth_error = get_authenticated_user()
+    if auth_error:
+        return auth_error
 
+    try:
+        # Buscamos el dispositivo asegurando que pertenece a quien inició sesión
+        dispositivo = Device.query.filter_by(id=id_device, user_id=user.id).first()
+        
+        if not dispositivo:
+            return json_response("El dispositivo no existe o ya fue desvinculado.", 404)
+
+        db.session.delete(dispositivo)
+        db.session.commit()
+        app.logger.info("Dispositivo eliminado: %s", id_device)
+        return json_response("Dispositivo desvinculado correctamente.", 200)
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Error al eliminar dispositivo.")
+        return json_response("No se pudo desvincular el dispositivo.", 500)
+    
 # ----- RUTAS DE MAPAS (ARTURO) -----------
 @app.route("/api/get_next_map_name", methods=['GET'])
 def get_next_map_name():
